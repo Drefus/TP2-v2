@@ -1,4 +1,5 @@
 #include "HospitalManager.hpp"
+#include <fstream>
 
 using namespace std;
 
@@ -41,9 +42,10 @@ std::string HospitalManager::ToDataDeChegadaESaidas(tm dataDeChegada, double tem
     ss << std::put_time(&dataDeChegada, "%a %b %d %H:%M:%S %Y");
     int total_hours = static_cast<int>(tempoTotal);
     int minutes = static_cast<int>(round((tempoTotal - total_hours) * 60));
-
+    int seconds = static_cast<int>(round((tempoTotal - total_hours - (minutes / 60.0)) * 3600));
     dataDeChegada.tm_hour += total_hours;
     dataDeChegada.tm_min += minutes;
+    dataDeChegada.tm_sec += seconds;
     mktime(&dataDeChegada);
     std::string dataDeChegadaStr = ss.str();
     ss2 << std::put_time(&dataDeChegada, "%a %b %d %H:%M:%S %Y");
@@ -51,9 +53,9 @@ std::string HospitalManager::ToDataDeChegadaESaidas(tm dataDeChegada, double tem
     return dataDeChegadaStr + " " + dataDeSaidaStr;
 }
 
-void HospitalManager::run()
+void HospitalManager::run(string arquivo)
 {
-    readInput();
+    readInput(arquivo);
     processEvents();
     printResults();
 }
@@ -226,24 +228,33 @@ void HospitalManager::printResults()
     }
 }
 
-void HospitalManager::readInput()
+void HospitalManager::readInput(string arquivo)
 {
     relogio = 0;
-    cin >> duracaoTriagem >> capacidadeTriagem;
-    cin >> duracaoAtendimento >> capacidadeAtendimento;
-    cin >> duracaoMedidasHospitalares >> capacidadeMedidasHospitalares;
-    cin >> duracaoTestesDeLaboratorio >> capacidadeTestesDeLaboratorio;
-    cin >> duracaoExamesDeImagem >> capacidadeExamesDeImagem;
-    cin >> duracaoMedicamentos >> capacidadeMedicamentos;
-    cin >> numPacientes;
+    ifstream inputFile(arquivo);
+    if (!inputFile.is_open())
+    {
+        cerr << "Erro ao abrir o arquivo: " << arquivo << endl;
+        return;
+    }
+
+    inputFile >> duracaoTriagem >> capacidadeTriagem;
+    inputFile >> duracaoAtendimento >> capacidadeAtendimento;
+    inputFile >> duracaoMedidasHospitalares >> capacidadeMedidasHospitalares;
+    inputFile >> duracaoTestesDeLaboratorio >> capacidadeTestesDeLaboratorio;
+    inputFile >> duracaoExamesDeImagem >> capacidadeExamesDeImagem;
+    inputFile >> duracaoMedicamentos >> capacidadeMedicamentos;
+    inputFile >> numPacientes;
     pacientes = new Paciente[numPacientes];
     for (int i = 0; i < numPacientes; ++i)
     {
         int id, alta, prioridade, ano, mes, dia, numMedidasHospitalares, numTestesDeLaboratorio, numExamesDeImagem, numMedicamentos;
         double hora;
-        cin >> id >> alta >> ano >> mes >> dia >> hora >> prioridade >> numMedidasHospitalares >> numTestesDeLaboratorio >> numExamesDeImagem >> numMedicamentos;
+        inputFile >> id >> alta >> ano >> mes >> dia >> hora >> prioridade >> numMedidasHospitalares >> numTestesDeLaboratorio >> numExamesDeImagem >> numMedicamentos;
         pacientes[i] = Paciente(id, alta, prioridade, ano, mes, dia, hora, numMedidasHospitalares, numTestesDeLaboratorio, numExamesDeImagem, numMedicamentos);
         Evento evento(pacientes[i].getTempoDeChegadaEmHoras(), pacientes[i].getId(), -1);
         escalonador.insereEvento(evento);
     }
+
+    inputFile.close();
 }

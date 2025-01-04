@@ -11,6 +11,8 @@
 #include "Escalonador.hpp"
 #include <cmath>
 
+using namespace std;
+
 class HospitalManager
 {
 public:
@@ -19,12 +21,12 @@ public:
     int getPaciemteIndex(int id);
     Paciente getPacienteById(int id);
     std::string ToDataDeChegadaESaidas(tm dataDeChegada, double tempoTotal);
-    void run();
+    void run(string arquivo);
     void processEvents();
     void processQueue(Fila &fila, Procedimento &procedimento, Status novoStatus, double duracaoBase);
     double getMultiplicadorDuracao(Status status, Paciente paciente);
     void printResults();
-    void readInput();
+    void readInput(string arquivo);
     double relogio;
     double duracaoTriagem, duracaoAtendimento, duracaoMedidasHospitalares, duracaoTestesDeLaboratorio, duracaoExamesDeImagem, duracaoMedicamentos;
     int capacidadeTriagem, capacidadeAtendimento, capacidadeMedidasHospitalares, capacidadeTestesDeLaboratorio, capacidadeExamesDeImagem, capacidadeMedicamentos;
