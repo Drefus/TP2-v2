@@ -49,6 +49,7 @@ private:
     double tempoAtendimento;
     double tempoEspera;
     Status status;
+    double tempoAtualEmHoras;
 
 public:
     Paciente();
@@ -88,6 +89,9 @@ public:
     void addTempoAtual(double tempo);
     void addTempoEspera(double tempo);
     void addTempoAtendimento(double tempo);
+
+    double getTempoAtualEmHoras();
+    void setTempoAtualEmHoras(double tempoAtualEmHoras);
 };
 
 #endif

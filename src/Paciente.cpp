@@ -80,3 +80,13 @@ void Paciente::addTempoAtendimento(double tempo)
 {
     tempoAtendimento += tempo;
 }
+
+double Paciente::getTempoAtualEmHoras()
+{
+    return tempoAtualEmHoras;
+}
+
+void Paciente::setTempoAtualEmHoras(double tempoAtualEmHoras)
+{
+    this->tempoAtualEmHoras = tempoAtualEmHoras;
+}
