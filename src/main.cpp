@@ -1,9 +1,13 @@
 #include <iostream>
 #include <string>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 #include "Fila.hpp"
 #include "Paciente.hpp"
 #include "Procedimento.hpp"
 #include "Escalonador.hpp"
+#include <cmath>
 
 using namespace std;
 
@@ -17,6 +21,31 @@ int getPaciemteIndex(Paciente *pacientes, int numPacientes, int id)
         }
     }
     return -1;
+}
+
+Paciente getPacienteById(Paciente *pacientes, int numPacientes, int id)
+{
+    for (int i = 0; i < numPacientes; ++i)
+    {
+        if (pacientes[i].getId() == id)
+        {
+            return pacientes[i];
+        }
+    }
+    return Paciente();
+}
+
+std::string ToDataDeChegadaESaidas(tm dataDeChegada, double tempoTotal)
+{
+    std::stringstream ss, ss2;
+    ss << std::put_time(&dataDeChegada, "%a %b %d %H:%M:%S %Y");
+    dataDeChegada.tm_hour += tempoTotal;
+    int minutos = static_cast<int>(round((tempoTotal - static_cast<int>(tempoTotal)) * 60));
+    dataDeChegada.tm_min = minutos;
+    std::string dataDeChegadaStr = ss.str();
+    ss2 << std::put_time(&dataDeChegada, "%a %b %d %H:%M:%S %Y");
+    std::string dataDeSaidaStr = ss2.str();
+    return dataDeChegadaStr + " " + dataDeSaidaStr;
 }
 
 int main()
@@ -65,7 +94,6 @@ int main()
         int id, alta, prioridade, ano, mes, dia, numMedidasHospitalares, numTestesDeLaboratorio, numExamesDeImagem, numMedicamentos;
         double hora;
         cin >> id >> alta >> ano >> mes >> dia >> hora >> prioridade >> numMedidasHospitalares >> numTestesDeLaboratorio >> numExamesDeImagem >> numMedicamentos;
-        cout << id << " " << alta << " " << prioridade << " " << ano << " " << mes << " " << dia << " " << hora << " " << numMedidasHospitalares << " " << numTestesDeLaboratorio << " " << numExamesDeImagem << " " << numMedicamentos << endl;
         pacientes[i] = Paciente(id, alta, prioridade, ano, mes, dia, hora, numMedidasHospitalares, numTestesDeLaboratorio, numExamesDeImagem, numMedicamentos);
         Evento evento(pacientes[i].getTempoDeChegadaEmHoras(), pacientes[i].getId(), -1);
         escalonador.insereEvento(evento);
@@ -82,158 +110,8 @@ int main()
 
             int pacienteIndex = getPaciemteIndex(pacientes, numPacientes, evento.pacienteId);
             Paciente paciente = pacientes[pacienteIndex];
-            paciente.addTempoAtual(relogio - paciente.getTempoDeAtualEmHoras());
+            paciente.setTempoAtualEmHoras(relogio);
             pacientes[pacienteIndex] = paciente;
-            if (paciente.getStatus() == NOT_ARRIVED)
-            {
-                int unidadeLivre = triagem.getUnidadeLivre();
-                if (unidadeLivre != -1)
-                {
-                    triagem.ocupar(unidadeLivre);
-                    paciente.setStatus(IN_SCREENING);
-                    Evento novoEvento(relogio + duracaoTriagem, paciente.getId(), unidadeLivre);
-                    escalonador.insereEvento(novoEvento);
-                    paciente.addTempoAtendimento(duracaoTriagem);
-                }
-                else
-                {
-                    paciente.setStatus(SCREENING_QUEUE);
-
-                    pacientes[pacienteIndex] = paciente;
-                    filaDeTriagem.enfileira(paciente);
-                }
-            }
-            else if (paciente.getStatus() == IN_SCREENING)
-            {
-                if (evento.numUnit != -1)
-                {
-                    triagem.desocupar(evento.numUnit);
-                }
-
-                int unidadeLivre = atendimento.getUnidadeLivre();
-                if (unidadeLivre != -1)
-                {
-                    atendimento.ocupar(unidadeLivre);
-                    paciente.setStatus(IN_MEDICAL_CONSULTATION);
-                    Evento novoEvento(relogio + +duracaoAtendimento, paciente.getId(), unidadeLivre);
-                    escalonador.insereEvento(novoEvento);
-                    paciente.addTempoAtendimento(duracaoAtendimento);
-                }
-                else
-                {
-                    paciente.setStatus(MEDICAL_CONSULTATION_QUEUE);
-
-                    filaDeAtendimento.enfileira(paciente);
-                }
-                pacientes[pacienteIndex] = paciente;
-            }
-            else if (paciente.getStatus() == IN_MEDICAL_CONSULTATION)
-            {
-                if (evento.numUnit != -1)
-                {
-                    atendimento.desocupar(evento.numUnit);
-                }
-
-                int unidadeLivre = medidasHospitalares.getUnidadeLivre();
-                if (unidadeLivre != -1)
-                {
-                    double duracao = duracaoMedidasHospitalares * paciente.getNumMedidasHospitalares();
-                    medidasHospitalares.ocupar(unidadeLivre);
-                    paciente.setStatus(IN_MEDICAL_TREATMENT);
-                    Evento novoEvento(relogio + duracao, paciente.getId(), unidadeLivre);
-                    escalonador.insereEvento(novoEvento);
-                    paciente.addTempoAtendimento(duracao);
-                }
-                else
-                {
-                    paciente.setStatus(MEDICAL_TREATMENT_QUEUE);
-
-                    filaDeMedidasHospitalares.enfileira(paciente);
-                }
-                pacientes[pacienteIndex] = paciente;
-            }
-            else if (paciente.getStatus() == IN_MEDICAL_TREATMENT)
-            {
-                if (evento.numUnit != -1)
-                {
-                    medidasHospitalares.desocupar(evento.numUnit);
-                }
-
-                int unidadeLivre = testesDeLaboratorio.getUnidadeLivre();
-                if (unidadeLivre != -1)
-                {
-                    double duracao = duracaoTestesDeLaboratorio * paciente.getNumTestesDeLaboratorio();
-                    testesDeLaboratorio.ocupar(unidadeLivre);
-                    paciente.setStatus(IN_TEST);
-                    Evento novoEvento(relogio + duracao, paciente.getId(), unidadeLivre);
-                    escalonador.insereEvento(novoEvento);
-                    paciente.addTempoAtendimento(duracao);
-                }
-                else
-                {
-                    paciente.setStatus(TEST_QUEUE);
-
-                    filaDeTestesDeLaboratorio.enfileira(paciente);
-                }
-                pacientes[pacienteIndex] = paciente;
-            }
-            else if (paciente.getStatus() == IN_TEST)
-            {
-                if (evento.numUnit != -1)
-                {
-                    testesDeLaboratorio.desocupar(evento.numUnit);
-                }
-
-                int unidadeLivre = examesDeImagem.getUnidadeLivre();
-                if (unidadeLivre != -1)
-                {
-                    double duracao = duracaoExamesDeImagem * paciente.getNumExamesDeImagem();
-                    examesDeImagem.ocupar(unidadeLivre);
-                    paciente.setStatus(IN_IMAGING_TEST);
-                    Evento novoEvento(relogio + duracao, paciente.getId(), unidadeLivre);
-                    escalonador.insereEvento(novoEvento);
-                    paciente.setTempoAtendimento(duracao + paciente.getTempoAtendimento());
-                    paciente.addTempoAtual(duracao);
-                }
-                else
-                {
-                    paciente.setStatus(IMAGING_TEST_QUEUE);
-
-                    filaDeExamesDeImagem.enfileira(paciente);
-                }
-                pacientes[pacienteIndex] = paciente;
-            }
-            else if (paciente.getStatus() == IN_IMAGING_TEST || paciente.getStatus() == MEDICINE_QUEUE)
-            {
-                if (evento.numUnit != -1)
-                {
-                    examesDeImagem.desocupar(evento.numUnit);
-                }
-
-                int unidadeLivre = medicamentos.getUnidadeLivre();
-                if (unidadeLivre != -1)
-                {
-                    double duracao = duracaoMedicamentos * paciente.getNumMedicamentos();
-                    medicamentos.ocupar(unidadeLivre);
-                    paciente.setStatus(IN_MEDICINE);
-                    Evento novoEvento(relogio + duracao, paciente.getId(), unidadeLivre);
-                    escalonador.insereEvento(novoEvento);
-                    paciente.addTempoAtendimento(duracao);
-                }
-                else
-                {
-                    paciente.setStatus(MEDICINE_QUEUE);
-
-                    filaDeMedicamentos.enfileira(paciente);
-                }
-                pacientes[pacienteIndex] = paciente;
-            }
-            else if (paciente.getStatus() == IN_MEDICINE)
-            {
-                medicamentos.desocupar(evento.numUnit);
-                paciente.setStatus(HOSPITAL_DISCHARGED);
-                pacientes[pacienteIndex] = paciente;
-            }
 
             if (paciente.getStatus() == IN_MEDICAL_CONSULTATION && paciente.getAlta() == 1)
             {
@@ -242,6 +120,7 @@ int main()
                 if (evento.numUnit != -1)
                 {
                     atendimento.desocupar(evento.numUnit);
+                    evento.numUnit = -1;
                 }
             }
             if (paciente.getStatus() == IN_MEDICAL_CONSULTATION && paciente.getNumMedidasHospitalares() == 0)
@@ -251,6 +130,7 @@ int main()
                 if (evento.numUnit != -1)
                 {
                     atendimento.desocupar(evento.numUnit);
+                    evento.numUnit = -1;
                 }
             }
 
@@ -260,7 +140,8 @@ int main()
                 pacientes[pacienteIndex] = paciente;
                 if (evento.numUnit != -1)
                 {
-                    atendimento.desocupar(evento.numUnit);
+                    medidasHospitalares.desocupar(evento.numUnit);
+                    evento.numUnit = -1;
                 }
             }
             if (paciente.getStatus() == IN_TEST && paciente.getNumTestesDeLaboratorio() == 0)
@@ -269,7 +150,8 @@ int main()
                 pacientes[pacienteIndex] = paciente;
                 if (evento.numUnit != -1)
                 {
-                    medidasHospitalares.desocupar(evento.numUnit);
+                    testesDeLaboratorio.desocupar(evento.numUnit);
+                    evento.numUnit = -1;
                 }
             }
             if (paciente.getStatus() == IN_IMAGING_TEST && paciente.getNumExamesDeImagem() == 0)
@@ -278,7 +160,8 @@ int main()
                 pacientes[pacienteIndex] = paciente;
                 if (evento.numUnit != -1)
                 {
-                    testesDeLaboratorio.desocupar(evento.numUnit);
+                    examesDeImagem.desocupar(evento.numUnit);
+                    evento.numUnit = -1;
                 }
             }
             if (paciente.getStatus() == IN_MEDICINE && paciente.getNumExamesDeImagem() == 0)
@@ -287,17 +170,72 @@ int main()
                 pacientes[pacienteIndex] = paciente;
                 if (evento.numUnit != -1)
                 {
+                    medicamentos.desocupar(evento.numUnit);
+                    evento.numUnit = -1;
+                }
+            }
+
+            if (paciente.getStatus() == NOT_ARRIVED)
+            {
+                filaDeTriagem.enfileira(paciente);
+            }
+            else if (paciente.getStatus() == IN_SCREENING)
+            {
+                if (evento.numUnit != -1)
+                {
+                    triagem.desocupar(evento.numUnit);
+                }
+
+                filaDeAtendimento.enfileira(paciente);
+            }
+            else if (paciente.getStatus() == IN_MEDICAL_CONSULTATION)
+            {
+                if (evento.numUnit != -1)
+                {
+                    atendimento.desocupar(evento.numUnit);
+                }
+
+                filaDeMedidasHospitalares.enfileira(paciente);
+            }
+            else if (paciente.getStatus() == IN_MEDICAL_TREATMENT)
+            {
+                if (evento.numUnit != -1)
+                {
+                    medidasHospitalares.desocupar(evento.numUnit);
+                }
+
+                filaDeTestesDeLaboratorio.enfileira(paciente);
+            }
+            else if (paciente.getStatus() == IN_TEST)
+            {
+                if (evento.numUnit != -1)
+                {
+                    testesDeLaboratorio.desocupar(evento.numUnit);
+                }
+                filaDeExamesDeImagem.enfileira(paciente);
+            }
+            else if (paciente.getStatus() == IN_IMAGING_TEST)
+            {
+                if (evento.numUnit != -1)
+                {
                     examesDeImagem.desocupar(evento.numUnit);
                 }
+                filaDeMedicamentos.enfileira(paciente);
+            }
+            else if (paciente.getStatus() == IN_MEDICINE)
+            {
+                medicamentos.desocupar(evento.numUnit);
+                paciente.setStatus(HOSPITAL_DISCHARGED);
+                pacientes[pacienteIndex] = paciente;
             }
         }
 
         int unidadeLivreTriagem = triagem.getUnidadeLivre();
         while (!filaDeTriagem.filaVazia() && unidadeLivreTriagem != -1)
         {
-
             Paciente paciente = filaDeTriagem.desenfileira();
-            double atraso = relogio - paciente.getTempoDeAtualEmHoras();
+            paciente = getPacienteById(pacientes, numPacientes, paciente.getId());
+            double atraso = relogio - paciente.getTempoAtualEmHoras();
             paciente.addTempoEspera(atraso);
             int pacienteIndex = getPaciemteIndex(pacientes, numPacientes, paciente.getId());
             triagem.ocupar(unidadeLivreTriagem);
@@ -313,7 +251,8 @@ int main()
         while (!filaDeAtendimento.filaVazia() && unidadeLivreAtendimento != -1)
         {
             Paciente paciente = filaDeAtendimento.desenfileira();
-            double atraso = relogio - paciente.getTempoDeAtualEmHoras();
+            paciente = getPacienteById(pacientes, numPacientes, paciente.getId());
+            double atraso = relogio - paciente.getTempoAtualEmHoras();
             paciente.addTempoEspera(atraso);
             int pacienteIndex = getPaciemteIndex(pacientes, numPacientes, paciente.getId());
             atendimento.ocupar(unidadeLivreAtendimento);
@@ -329,7 +268,8 @@ int main()
         while (!filaDeMedidasHospitalares.filaVazia() && unidadeLivreMedidasHospitalares != -1)
         {
             Paciente paciente = filaDeMedidasHospitalares.desenfileira();
-            double atraso = relogio - paciente.getTempoDeAtualEmHoras();
+            paciente = getPacienteById(pacientes, numPacientes, paciente.getId());
+            double atraso = relogio - paciente.getTempoAtualEmHoras();
             paciente.addTempoEspera(atraso);
             int pacienteIndex = getPaciemteIndex(pacientes, numPacientes, paciente.getId());
             medidasHospitalares.ocupar(unidadeLivreMedidasHospitalares);
@@ -346,7 +286,8 @@ int main()
         while (!filaDeTestesDeLaboratorio.filaVazia() && unidadeLivreTestesDeLaboratorio != -1)
         {
             Paciente paciente = filaDeTestesDeLaboratorio.desenfileira();
-            double atraso = relogio - paciente.getTempoDeAtualEmHoras();
+            paciente = getPacienteById(pacientes, numPacientes, paciente.getId());
+            double atraso = relogio - paciente.getTempoAtualEmHoras();
             paciente.addTempoEspera(atraso);
             int pacienteIndex = getPaciemteIndex(pacientes, numPacientes, paciente.getId());
             testesDeLaboratorio.ocupar(unidadeLivreTestesDeLaboratorio);
@@ -363,7 +304,8 @@ int main()
         while (!filaDeExamesDeImagem.filaVazia() && unidadeLivreExamesDeImagem != -1)
         {
             Paciente paciente = filaDeExamesDeImagem.desenfileira();
-            double atraso = relogio - paciente.getTempoDeAtualEmHoras();
+            paciente = getPacienteById(pacientes, numPacientes, paciente.getId());
+            double atraso = relogio - paciente.getTempoAtualEmHoras();
             paciente.addTempoEspera(atraso);
             int pacienteIndex = getPaciemteIndex(pacientes, numPacientes, paciente.getId());
             examesDeImagem.ocupar(unidadeLivreExamesDeImagem);
@@ -380,7 +322,8 @@ int main()
         while (!filaDeMedicamentos.filaVazia() && unidadeLivreMedicamentos != -1)
         {
             Paciente paciente = filaDeMedicamentos.desenfileira();
-            double atraso = relogio - paciente.getTempoDeAtualEmHoras();
+            paciente = getPacienteById(pacientes, numPacientes, paciente.getId());
+            double atraso = relogio - paciente.getTempoAtualEmHoras();
             paciente.addTempoEspera(atraso);
             int pacienteIndex = getPaciemteIndex(pacientes, numPacientes, paciente.getId());
             medicamentos.ocupar(unidadeLivreMedicamentos);
@@ -397,9 +340,8 @@ int main()
     for (int i = 0; i < numPacientes; ++i)
     {
         double tempoTotal = pacientes[i].getTempoAtendimento() + pacientes[i].getTempoEspera();
-        string dataDeEntrada = to_string(pacientes[i].getTempoChegada().year) + " " + to_string(pacientes[i].getTempoChegada().month) + " " + to_string(pacientes[i].getTempoChegada().day) + " " + to_string(pacientes[i].getTempoChegada().hour);
-        string dataDeSaida = to_string(pacientes[i].getTempoAtual().year) + " " + to_string(pacientes[i].getTempoAtual().month) + " " + to_string(pacientes[i].getTempoAtual().day) + " " + to_string(pacientes[i].getTempoAtual().hour);
-        cout << pacientes[i].getId() << " " << dataDeEntrada << " " << dataDeSaida << " " << tempoTotal << " " << pacientes[i].getTempoAtendimento() << " " << pacientes[i].getTempoEspera() << endl;
+        string dataDeChegadaESaida = ToDataDeChegadaESaidas(pacientes[i].getTempoChegada(), tempoTotal);
+        cout << fixed << setprecision(2) << pacientes[i].getId() << " " << dataDeChegadaESaida << " " << tempoTotal << " " << pacientes[i].getTempoAtendimento() << " " << pacientes[i].getTempoEspera() << endl;
     }
 
     delete[] pacientes;

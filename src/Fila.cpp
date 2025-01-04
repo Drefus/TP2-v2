@@ -26,7 +26,7 @@ void Fila::enfileira(Paciente &paciente)
     {
         Nodo *atual = frente;
         Nodo *anterior = nullptr;
-        while (atual != nullptr && atual->paciente.getPrioridade() <= paciente.getPrioridade())
+        while (atual != nullptr && atual->paciente.getPrioridade() >= paciente.getPrioridade())
         {
             anterior = atual;
             atual = atual->proximo;

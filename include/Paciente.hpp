@@ -1,5 +1,6 @@
 #ifndef PACIENTE_HPP
 #define PACIENTE_HPP
+#include <ctime>
 
 enum Prioridade
 {
@@ -26,26 +27,18 @@ enum Status
     HOSPITAL_DISCHARGED = 13
 };
 
-struct Time
-{
-    int year;
-    int month;
-    int day;
-    double hour;
-};
-
 class Paciente
 {
 private:
     int id;
     int alta;
     Prioridade prioridade;
-    Time tempoChegada;
+    tm tempoChegada;
     int numMedidasHospitalares;
     int numTestesDeLaboratorio;
     int numExamesDeImagem;
     int numMedicamentos;
-    Time tempoAtual;
+    tm tempoAtual;
     double tempoAtendimento;
     double tempoEspera;
     Status status;
@@ -60,12 +53,12 @@ public:
     int getId();
     int getAlta();
     Prioridade getPrioridade();
-    Time getTempoChegada();
+    tm getTempoChegada();
     int getNumMedidasHospitalares();
     int getNumTestesDeLaboratorio();
     int getNumExamesDeImagem();
     int getNumMedicamentos();
-    Time getTempoAtual();
+    tm getTempoAtual();
     double getTempoAtendimento();
     double getTempoEspera();
     Status getStatus();
@@ -74,19 +67,18 @@ public:
     void setId(int id);
     void setAlta(int alta);
     void setPrioridade(Prioridade prioridade);
-    void setTempoChegada(Time tempoChegada);
+    void setTempoChegada(tm tempoChegada);
     void setNumMedidasHospitalares(int numMedidasHospitalares);
     void setNumTestesDeLaboratorio(int numTestesDeLaboratorio);
     void setNumExamesDeImagem(int numExamesDeImagem);
     void setNumMedicamentos(int numMedicamentos);
-    void setTempoAtual(Time tempoAtual);
+    void setTempoAtual(tm tempoAtual);
     void setTempoAtendimento(double tempoAtendimento);
     void setTempoEspera(double tempoEspera);
     void setStatus(Status status);
 
     double getTempoDeChegadaEmHoras();
     double getTempoDeAtualEmHoras();
-    void addTempoAtual(double tempo);
     void addTempoEspera(double tempo);
     void addTempoAtendimento(double tempo);
 
