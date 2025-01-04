@@ -5,7 +5,7 @@
 
 struct Nodo
 {
-    Paciente paciente;
+    Paciente *paciente;
     Nodo *proximo;
 };
 
@@ -20,8 +20,8 @@ public:
     ~Fila();
 
     void inicializa();
-    void enfileira(Paciente &paciente);
-    Paciente desenfileira();
+    void enfileira(Paciente *paciente);
+    Paciente *desenfileira();
     bool filaVazia();
     void finaliza();
 };

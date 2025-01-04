@@ -14,7 +14,7 @@ void Fila::inicializa()
     tras = nullptr;
 }
 
-void Fila::enfileira(Paciente &paciente)
+void Fila::enfileira(Paciente *paciente)
 {
     Nodo *novoNodo = new Nodo{paciente, nullptr};
     if (tras == nullptr)
@@ -26,7 +26,7 @@ void Fila::enfileira(Paciente &paciente)
     {
         Nodo *atual = frente;
         Nodo *anterior = nullptr;
-        while (atual != nullptr && atual->paciente.getPrioridade() >= paciente.getPrioridade())
+        while (atual != nullptr && atual->paciente->getPrioridade() >= paciente->getPrioridade())
         {
             anterior = atual;
             atual = atual->proximo;
@@ -48,7 +48,7 @@ void Fila::enfileira(Paciente &paciente)
     }
 }
 
-Paciente Fila::desenfileira()
+Paciente *Fila::desenfileira()
 {
     if (filaVazia())
     {
@@ -60,7 +60,7 @@ Paciente Fila::desenfileira()
     {
         tras = nullptr;
     }
-    Paciente paciente = nodoRemovido->paciente;
+    Paciente *paciente = nodoRemovido->paciente;
     delete nodoRemovido;
     return paciente;
 }

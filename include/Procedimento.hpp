@@ -14,5 +14,6 @@ public:
     int getTotalUnidades();
     ~Procedimento();
     int getUnidadeLivre();
+    int numUnidadesEmUso();
 };
 #endif

@@ -1,4 +1,6 @@
 #include "Procedimento.hpp"
+#include <iostream>
+using namespace std;
 
 Procedimento::Procedimento(int n) : totalUnidades(n)
 {
@@ -26,6 +28,19 @@ int Procedimento::getUnidadeLivre()
     return -1;
 }
 
+int Procedimento::numUnidadesEmUso()
+{
+    int count = 0;
+    for (int i = 0; i < totalUnidades; ++i)
+    {
+        if (unidades[i])
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
 bool Procedimento::isOcupada(int index)
 {
     return unidades[index];
@@ -38,7 +53,10 @@ void Procedimento::ocupar(int index)
 
 void Procedimento::desocupar(int index)
 {
-    unidades[index] = false;
+    if (index >= 0 && index < totalUnidades)
+        unidades[index] = false;
+    else
+        cout << "Unidade inexistente :" << index << endl;
 }
 
 int Procedimento::getTotalUnidades()
