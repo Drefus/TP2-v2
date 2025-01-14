@@ -36,19 +36,36 @@ Paciente HospitalManager::getPacienteById(int id)
     return Paciente();
 }
 
+tm HospitalManager::adicionarHoras(struct tm data, double horas)
+{
+    // Converte a estrutura tm para time_t
+    time_t tempo = mktime(&data);
+
+    // Converte horas para segundos e adiciona ao tempo
+    tempo += static_cast<time_t>(horas * 3600);
+
+    // Converte de volta para tm
+    struct tm novaData = *localtime(&tempo);
+
+    // Arredonda os segundos para minutos
+    if (novaData.tm_sec >= 30)
+    {
+        novaData.tm_min += 1;
+    }
+    novaData.tm_sec = 0;
+
+    time_t formmatDate = mktime(&novaData);
+
+    return *localtime(&formmatDate);
+}
+
 std::string HospitalManager::ToDataDeChegadaESaidas(tm dataDeChegada, double tempoTotal)
 {
     std::stringstream ss, ss2;
-    ss << std::put_time(&dataDeChegada, "%a %b %d %H:%M:%S %Y");
-    int total_hours = static_cast<int>(tempoTotal);
-    int minutes = static_cast<int>(round((tempoTotal - total_hours) * 60));
-    int seconds = static_cast<int>(round((tempoTotal - total_hours - (minutes / 60.0)) * 3600));
-    dataDeChegada.tm_hour += total_hours;
-    dataDeChegada.tm_min += minutes;
-    dataDeChegada.tm_sec += seconds;
-    mktime(&dataDeChegada);
+    ss << std::put_time(&dataDeChegada, "%a %b ") << dataDeChegada.tm_mday << std::put_time(&dataDeChegada, " %H:%M:%S %Y");
     std::string dataDeChegadaStr = ss.str();
-    ss2 << std::put_time(&dataDeChegada, "%a %b %d %H:%M:%S %Y");
+    dataDeChegada = adicionarHoras(dataDeChegada, tempoTotal);
+    ss2 << std::put_time(&dataDeChegada, "%a %b ") << dataDeChegada.tm_mday << std::put_time(&dataDeChegada, " %H:%M:%S %Y");
     std::string dataDeSaidaStr = ss2.str();
     return dataDeChegadaStr + " " + dataDeSaidaStr;
 }
@@ -79,61 +96,6 @@ void HospitalManager::processEvents()
             Paciente *paciente = &pacientes[pacienteIndex];
             paciente->setTempoAtualEmHoras(relogio);
 
-            if (paciente->getStatus() == IN_MEDICAL_CONSULTATION && paciente->getAlta() == 1)
-            {
-                paciente->setStatus(HOSPITAL_DISCHARGED);
-                if (evento.numUnit != -1)
-                {
-                    atendimento.desocupar(evento.numUnit);
-                    evento.numUnit = -1;
-                }
-            }
-            if (paciente->getStatus() == IN_MEDICAL_CONSULTATION && paciente->getNumMedidasHospitalares() == 0)
-            {
-                paciente->setStatus(IN_MEDICAL_TREATMENT);
-                if (evento.numUnit != -1)
-                {
-                    atendimento.desocupar(evento.numUnit);
-                    evento.numUnit = -1;
-                }
-            }
-            if (paciente->getStatus() == IN_MEDICAL_TREATMENT && paciente->getNumTestesDeLaboratorio() == 0)
-            {
-                paciente->setStatus(IN_TEST);
-                if (evento.numUnit != -1)
-                {
-                    medidasHospitalares.desocupar(evento.numUnit);
-                    evento.numUnit = -1;
-                }
-            }
-            if (paciente->getStatus() == IN_TEST && paciente->getNumTestesDeLaboratorio() == 0)
-            {
-                paciente->setStatus(IN_IMAGING_TEST);
-                if (evento.numUnit != -1)
-                {
-                    testesDeLaboratorio.desocupar(evento.numUnit);
-                    evento.numUnit = -1;
-                }
-            }
-            if (paciente->getStatus() == IN_IMAGING_TEST && paciente->getNumExamesDeImagem() == 0)
-            {
-                paciente->setStatus(IN_MEDICINE);
-                if (evento.numUnit != -1)
-                {
-                    examesDeImagem.desocupar(evento.numUnit);
-                    evento.numUnit = -1;
-                }
-            }
-            if (paciente->getStatus() == IN_MEDICINE && paciente->getNumExamesDeImagem() == 0)
-            {
-                paciente->setStatus(HOSPITAL_DISCHARGED);
-                if (evento.numUnit != -1)
-                {
-                    medicamentos.desocupar(evento.numUnit);
-                    evento.numUnit = -1;
-                }
-            }
-
             switch (paciente->getStatus())
             {
             case NOT_ARRIVED:
@@ -147,7 +109,10 @@ void HospitalManager::processEvents()
             case IN_MEDICAL_CONSULTATION:
                 if (evento.numUnit != -1)
                     atendimento.desocupar(evento.numUnit);
-                filaDeMedidasHospitalares.enfileira(paciente);
+                if (paciente->getAlta() == 0)
+                    filaDeMedidasHospitalares.enfileira(paciente);
+                else
+                    paciente->setStatus(HOSPITAL_DISCHARGED);
                 break;
             case IN_MEDICAL_TREATMENT:
                 if (evento.numUnit != -1)
@@ -255,6 +220,5 @@ void HospitalManager::readInput(string arquivo)
         Evento evento(pacientes[i].getTempoDeChegadaEmHoras(), pacientes[i].getId(), -1);
         escalonador.insereEvento(evento);
     }
-
     inputFile.close();
 }

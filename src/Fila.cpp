@@ -3,6 +3,10 @@
 
 Fila::Fila() : frente(nullptr), tras(nullptr) {}
 
+Fila::Fila(bool igorarPrioridade) : frente(nullptr), tras(nullptr), igorarPrioridade(igorarPrioridade)
+{
+}
+
 Fila::~Fila()
 {
     finaliza();
@@ -20,6 +24,11 @@ void Fila::enfileira(Paciente *paciente)
     if (tras == nullptr)
     {
         frente = novoNodo;
+        tras = novoNodo;
+    }
+    else if (igorarPrioridade)
+    {
+        tras->proximo = novoNodo;
         tras = novoNodo;
     }
     else

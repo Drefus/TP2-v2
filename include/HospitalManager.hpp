@@ -20,6 +20,7 @@ public:
     ~HospitalManager();
     int getPaciemteIndex(int id);
     Paciente getPacienteById(int id);
+    tm adicionarHoras(tm data, double horas);
     std::string ToDataDeChegadaESaidas(tm dataDeChegada, double tempoTotal);
     void run(string arquivo);
     void processEvents();
@@ -33,7 +34,8 @@ public:
     int numPacientes;
     Paciente *pacientes;
     Escalonador escalonador;
-    Fila filaDeTriagem, filaDeAtendimento, filaDeMedidasHospitalares, filaDeTestesDeLaboratorio, filaDeExamesDeImagem, filaDeMedicamentos;
+    Fila filaDeTriagem = Fila(true);
+    Fila filaDeAtendimento, filaDeMedidasHospitalares, filaDeTestesDeLaboratorio, filaDeExamesDeImagem, filaDeMedicamentos;
 };
 
 #endif // HOSPITALMANAGER_HPP

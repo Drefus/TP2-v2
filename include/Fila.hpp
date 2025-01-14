@@ -14,9 +14,11 @@ class Fila
 private:
     Nodo *frente;
     Nodo *tras;
+    bool igorarPrioridade = false;
 
 public:
     Fila();
+    Fila(bool igorarPrioridade);
     ~Fila();
 
     void inicializa();

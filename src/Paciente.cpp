@@ -55,12 +55,12 @@ void Paciente::setStatus(Status status) { this->status = status; }
 
 double Paciente::getTempoDeChegadaEmHoras()
 {
-    return tempoChegada.tm_hour + tempoChegada.tm_mday * 24 + tempoChegada.tm_mon * 30 * 24 + tempoChegada.tm_year * 365 * 24;
+    return tempoChegada.tm_hour + tempoChegada.tm_mday * 24 + tempoChegada.tm_mon * 30 * 24 + tempoChegada.tm_year * 365 * 24; // ano bicesto
 }
 
 double Paciente::getTempoDeAtualEmHoras()
 {
-    return tempoAtual.tm_hour + tempoAtual.tm_mday * 24 + tempoAtual.tm_mon * 30 * 24 + tempoAtual.tm_year * 365 * 24;
+    return tempoAtual.tm_hour + tempoAtual.tm_mday * 24 + tempoAtual.tm_mon * 30 * 24 + tempoAtual.tm_year * 365 * 24; // ano bicesto
 }
 
 void Paciente::addTempoEspera(double tempo)
