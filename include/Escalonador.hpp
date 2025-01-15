@@ -1,12 +1,12 @@
 #ifndef ESCALONADOR_HPP
 #define ESCALONADOR_HPP
-
+#include "Paciente.hpp"
 struct Evento
 {
     double dataHora;
-    int pacienteId;
+    Paciente *paciente;
     int numUnit = -1;
-    Evento(double dh = 0.0, int pid = 0, int te = 0) : dataHora(dh), pacienteId(pid), numUnit(te) {}
+    Evento(double dataHora = 0, Paciente *paciente = nullptr, int numUnit = -1) : dataHora(dataHora), paciente(paciente), numUnit(numUnit) {}
 };
 class Escalonador
 {

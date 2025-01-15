@@ -61,7 +61,7 @@ void Escalonador::heapifyUp(int index)
     {
         int parentIndex = (index - 1) / 2;
         if (heap[index].dataHora > heap[parentIndex].dataHora ||
-            (heap[index].dataHora == heap[parentIndex].dataHora && heap[index].pacienteId >= heap[parentIndex].pacienteId))
+            (heap[index].dataHora == heap[parentIndex].dataHora && heap[index].paciente->getId() >= heap[parentIndex].paciente->getId()))
         {
             break;
         }
@@ -79,12 +79,12 @@ void Escalonador::heapifyDown(int index)
         int smallest = index;
 
         if (leftChild < tamanho && (heap[leftChild].dataHora < heap[smallest].dataHora ||
-                                    (heap[leftChild].dataHora == heap[smallest].dataHora && heap[leftChild].pacienteId < heap[smallest].pacienteId)))
+                                    (heap[leftChild].dataHora == heap[smallest].dataHora && heap[leftChild].paciente->getId() < heap[smallest].paciente->getId())))
         {
             smallest = leftChild;
         }
         if (rightChild < tamanho && (heap[rightChild].dataHora < heap[smallest].dataHora ||
-                                     (heap[rightChild].dataHora == heap[smallest].dataHora && heap[rightChild].pacienteId < heap[smallest].pacienteId)))
+                                     (heap[rightChild].dataHora == heap[smallest].dataHora && heap[rightChild].paciente->getId() < heap[smallest].paciente->getId())))
         {
             smallest = rightChild;
         }

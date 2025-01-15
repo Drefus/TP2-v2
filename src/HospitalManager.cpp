@@ -92,8 +92,7 @@ void HospitalManager::processEvents()
         {
             Evento evento = escalonador.retiraProximoEvento();
             relogio = evento.dataHora;
-            int pacienteIndex = getPaciemteIndex(evento.pacienteId);
-            Paciente *paciente = &pacientes[pacienteIndex];
+            Paciente *paciente = evento.paciente;
             paciente->setTempoAtualEmHoras(relogio);
 
             switch (paciente->getStatus())
@@ -159,7 +158,7 @@ void HospitalManager::processQueue(Fila &fila, Procedimento &procedimento, Statu
         procedimento.ocupar(unidadeLivre);
         paciente->setStatus(novoStatus);
         double duracao = duracaoBase * getMultiplicadorDuracao(novoStatus, *paciente);
-        Evento novoEvento(relogio + duracao, paciente->getId(), unidadeLivre);
+        Evento novoEvento(relogio + duracao, paciente, unidadeLivre);
         escalonador.insereEvento(novoEvento);
         paciente->addTempoAtendimento(duracao);
         unidadeLivre = procedimento.getUnidadeLivre();
@@ -217,7 +216,7 @@ void HospitalManager::readInput(string arquivo)
         double hora;
         inputFile >> id >> alta >> ano >> mes >> dia >> hora >> prioridade >> numMedidasHospitalares >> numTestesDeLaboratorio >> numExamesDeImagem >> numMedicamentos;
         pacientes[i] = Paciente(id, alta, prioridade, ano, mes, dia, hora, numMedidasHospitalares, numTestesDeLaboratorio, numExamesDeImagem, numMedicamentos);
-        Evento evento(pacientes[i].getTempoDeChegadaEmHoras(), pacientes[i].getId(), -1);
+        Evento evento(pacientes[i].getTempoDeChegadaEmHoras(), &pacientes[i], -1);
         escalonador.insereEvento(evento);
     }
     inputFile.close();
