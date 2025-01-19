@@ -16,9 +16,6 @@ Paciente::Paciente(int id, int alta, int prioridade, int ano, int mes, int dia, 
     data.tm_mon = mes - 1;
     data.tm_mday = dia;
     data.tm_hour = static_cast<int>(hora);
-    data.tm_min = 0;
-    data.tm_sec = 0;
-    data.tm_isdst = -1;
     time_t tempo = mktime(&data);
 
     // Converte time_t para tm e armazena em tempoChegada
@@ -133,7 +130,9 @@ void Paciente::setStatus(Status status)
 // Calcula o tempo de chegada em horas
 double Paciente::getTempoDeChegadaEmHoras()
 {
-    return tempoChegada.tm_hour + tempoChegada.tm_mday * 24 + tempoChegada.tm_mon * 30 * 24 + tempoChegada.tm_year * 365 * 24; // ano bissexto
+    tm *tempo = &tempoChegada;
+    time_t tempoEmSegundos = mktime(tempo);
+    return tempoEmSegundos / 3600.0;
 }
 
 // Adiciona tempo de espera ao paciente
