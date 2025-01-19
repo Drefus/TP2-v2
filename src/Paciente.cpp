@@ -131,8 +131,8 @@ void Paciente::setStatus(Status status)
 double Paciente::getTempoDeChegadaEmHoras()
 {
     tm *tempo = &tempoChegada;
-    time_t tempoEmSegundos = mktime(tempo);
-    return tempoEmSegundos / 3600.0;
+    time_t segundos = mktime(tempo);
+    return segundos / 3600.0;
 }
 
 // Adiciona tempo de espera ao paciente
