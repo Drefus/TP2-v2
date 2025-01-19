@@ -1,62 +1,45 @@
 #include "Fila.hpp"
 #include <stdexcept>
 
+// Construtor da classe Fila
 Fila::Fila() : frente(nullptr), tras(nullptr) {}
 
-Fila::Fila(bool igorarPrioridade) : frente(nullptr), tras(nullptr), igorarPrioridade(igorarPrioridade)
-{
-}
-
+// Destrutor da classe Fila
 Fila::~Fila()
 {
     finaliza();
 }
 
+// Inicializa a fila, definindo os ponteiros frente e tras como nulos
 void Fila::inicializa()
 {
     frente = nullptr;
     tras = nullptr;
 }
 
+// Adiciona um paciente na fila
 void Fila::enfileira(Paciente *paciente)
 {
+    if (paciente == nullptr)
+    {
+        throw std::invalid_argument("Paciente não pode ser nulo");
+    }
     Nodo *novoNodo = new Nodo{paciente, nullptr};
     if (tras == nullptr)
     {
+        // Se a fila estiver vazia, o novo nodo será tanto o frente quanto o tras
         frente = novoNodo;
-        tras = novoNodo;
-    }
-    else if (igorarPrioridade)
-    {
-        tras->proximo = novoNodo;
         tras = novoNodo;
     }
     else
     {
-        Nodo *atual = frente;
-        Nodo *anterior = nullptr;
-        while (atual != nullptr && atual->paciente->getPrioridade() >= paciente->getPrioridade())
-        {
-            anterior = atual;
-            atual = atual->proximo;
-        }
-        if (anterior == nullptr)
-        {
-            novoNodo->proximo = frente;
-            frente = novoNodo;
-        }
-        else
-        {
-            novoNodo->proximo = atual;
-            anterior->proximo = novoNodo;
-            if (atual == nullptr)
-            {
-                tras = novoNodo;
-            }
-        }
+        // Caso contrário, adiciona o novo nodo no final da fila
+        tras->proximo = novoNodo;
+        tras = novoNodo;
     }
 }
 
+// Remove e retorna o paciente do início da fila
 Paciente *Fila::desenfileira()
 {
     if (filaVazia())
@@ -67,6 +50,7 @@ Paciente *Fila::desenfileira()
     frente = frente->proximo;
     if (frente == nullptr)
     {
+        // Se a fila ficar vazia após a remoção, atualiza o ponteiro tras para nulo
         tras = nullptr;
     }
     Paciente *paciente = nodoRemovido->paciente;
@@ -74,15 +58,17 @@ Paciente *Fila::desenfileira()
     return paciente;
 }
 
+// Verifica se a fila está vazia
 bool Fila::filaVazia()
 {
     return frente == nullptr;
 }
 
+// Libera todos os elementos da fila
 void Fila::finaliza()
 {
     while (!filaVazia())
     {
-        desenfileira();
+        delete desenfileira();
     }
 }
