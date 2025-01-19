@@ -22,14 +22,15 @@ public:
     // Destrutor
     ~HospitalManager();
 
+    // Executa o processamento a partir de um arquivo
+    void executar(string arquivo);
+
+private:
     // Adiciona horas a uma data
     tm adicionarHoras(tm data, double horas);
 
     // Converte a data de chegada e saída para string
     std::string paraDataDeChegadaESaida(tm dataDeChegada, double tempoTotal);
-
-    // Executa o processamento a partir de um arquivo
-    void executar(string arquivo);
 
     // Processa os eventos
     void processarEventos();
